@@ -3,7 +3,7 @@
 const idlix = require('../lib/idlix-client');
 const mapper = require('../lib/mapper');
 
-async function streamHandler({ type, id }) {
+async function streamHandler({ type, id, config }) {
   try {
     let parsed = mapper.parseId(id);
     if (!parsed) return { streams: [] };
@@ -40,10 +40,14 @@ async function streamHandler({ type, id }) {
 
     if (!streamPayload) return { streams: [] };
 
+    // Build proxy base: use addon's own URL as proxy endpoint
+    const proxyBase = (config && config.proxyBase) || process.env.ADDON_URL || '';
+
     const sources = mapper.extractVideoSources(streamPayload);
     const streams = mapper.toStreams(sources, {
       slug: parsed.slug,
       bingeGroup: `idlix-${parsed.slug}`,
+      proxyBase,
     });
 
     return { streams };

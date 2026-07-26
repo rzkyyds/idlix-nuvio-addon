@@ -161,6 +161,52 @@ app.get('/health', (req, res) => {
   res.json({ ok: true });
 });
 
+// Proxy: unwrap IDLIX config.json URLs into playable content
+// IDLIX stream returns URLs like .../config-XXX.json which are actually M3U8
+// Player rejects .json extension → serve with application/vnd.apple.mpegurl
+const axios = require('axios');
+app.get('/play', async (req, res) => {
+  try {
+    const targetUrl = req.query.url;
+    if (!targetUrl) return res.status(400).send('Missing ?url=');
+
+    // Fetch the JSON config (it returns M3U8 content)
+    const resp = await axios.get(targetUrl, {
+      timeout: 15000,
+      responseType: 'text',
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Accept': '*/*',
+        'Referer': 'https://idlix.com/',
+      },
+      maxRedirects: 5,
+    });
+
+    const contentType = resp.headers['content-type'] || '';
+    const body = typeof resp.data === 'string' ? resp.data : JSON.stringify(resp.data);
+
+    // If it's M3U8, serve with proper content type
+    if (body.trim().startsWith('#EXTM3U') || contentType.includes('mpegurl') || contentType.includes('vnd.apple')) {
+      res.setHeader('Content-Type', 'application/vnd.apple.mpegurl');
+      res.send(body);
+    } else if (contentType.includes('json') || body.trim().startsWith('{')) {
+      // JSON config — extract m3u8 URL
+      try {
+        const cfg = typeof resp.data === 'string' ? JSON.parse(resp.data) : resp.data;
+        const m3u8Url = cfg.url || cfg.stream || cfg.file;
+        if (m3u8Url) return res.redirect(307, m3u8Url);
+      } catch (_) {}
+      res.setHeader('Content-Type', 'application/octet-stream');
+      res.send(body);
+    } else {
+      res.send(body);
+    }
+  } catch (err) {
+    console.error('[play] proxy error:', err.message);
+    res.status(502).send('Stream proxy error');
+  }
+});
+
 // Stremio SDK router (catalog / meta / stream)
 const addonRouter = getRouter(addonInterface);
 app.use(addonRouter);
