@@ -183,7 +183,16 @@ app.get('/play', async (req, res) => {
     });
 
     const contentType = resp.headers['content-type'] || '';
-    const body = typeof resp.data === 'string' ? resp.data : JSON.stringify(resp.data);
+    let body = typeof resp.data === 'string' ? resp.data : JSON.stringify(resp.data);
+
+    // Rewrite relative M3U8 segment URLs to absolute (prepend source base)
+    if (body.trim().startsWith('#EXTM3U')) {
+      const sourceBase = targetUrl.substring(0, targetUrl.lastIndexOf('/') + 1);
+      body = body.replace(/^(?!#)(\S+\.\w+)/gm, (match) => {
+        if (match.startsWith('http')) return match;
+        return sourceBase + match;
+      });
+    }
 
     // If it's M3U8, serve with proper content type
     if (body.trim().startsWith('#EXTM3U') || contentType.includes('mpegurl') || contentType.includes('vnd.apple')) {
