@@ -214,14 +214,12 @@ app.get('/play', async (req, res) => {
     const isM3u8 = body.trim().startsWith('#EXTM3U');
     const isJson = body.trim().startsWith('{') || body.trim().startsWith('[');
 
-    // Rewrite relative segment URLs through our proxy (same pattern as before)
-    // Player rejects .json extensions — all segments must pass /play
+    // Rewrite relative segment URLs to absolute majorplay.net URLs.
+    // Do NOT route variants through /play — CDN anti-hotlinking blocks Stealth
+    // for sub-playlists. Player has real browser TLS and can fetch them directly.
     if (isM3u8) {
-      const proxyBase = `https://${req.get('host')}/play?url=`;
-      const rewriteUri = (uri) => {
-        const absolute = new URL(uri, targetUrl).href;
-        return proxyBase + encodeURIComponent(absolute);
-      };
+      const baseUrl = new URL(targetUrl);
+      const rewriteUri = (uri) => new URL(uri, targetUrl).href;
       body = body.replace(/^(?!#)(\S+)/gm, (match) => rewriteUri(match));
       body = body.replace(/URI="([^"]+)"/g, (m, uri) => `URI="${rewriteUri(uri)}"`);
     }
