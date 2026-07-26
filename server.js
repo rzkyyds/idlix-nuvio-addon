@@ -161,11 +161,9 @@ app.get('/health', (req, res) => {
   res.json({ ok: true });
 });
 
-// Proxy: route blocked CDN requests through Stealth for correct TLS fingerprint.
-// Plain Node.js fetch() returns fake content (.png/.webp/.js) — Stealth gives real .ts.
-//
-// IDLIX stream returns URLs like .../config-XXX.json which are actually M3U8.
-// Player rejects .json extension → serve with application/vnd.apple.mpegurl
+// Proxy: FULL Stealth HLS proxy — ALL CDN requests through Stealth.
+// Majorplay.net CDN serves fake content (.webp/.png) to non-browser TLS.
+// Only Chromium BoringSSL fingerprint gets real video data.
 
 const STEALTH_URL = (process.env.STEALTH_API_URL || 'https://kisutstealth.zeabur.app').replace(/\/$/, '');
 
@@ -177,10 +175,12 @@ async function stealthFetch(targetUrl) {
     body: JSON.stringify({
       url: targetUrl,
       method: 'GET',
-      disableMedia: true,
+      disableMedia: false,  // allow binary segment responses
       headers: {
         'accept': '*/*',
         'accept-language': 'en-US,en;q=0.9',
+        'referer': 'https://z2.idlixku.com/',
+        'origin': 'https://z2.idlixku.com',
       },
     }),
   });
@@ -208,40 +208,44 @@ app.get('/play', async (req, res) => {
     const result = await stealthFetch(targetUrl);
     if (!result) return res.status(502).send('Stealth proxy error');
 
-    let body = result.text || '';
+    const body = result.text || '';
     if (!body.trim()) return res.status(502).send('Empty response from CDN');
 
     const isM3u8 = body.trim().startsWith('#EXTM3U');
     const isJson = body.trim().startsWith('{') || body.trim().startsWith('[');
+    const ext = (targetUrl.split('?')[0].split('.').pop() || '').toLowerCase();
+    const isBinary = ['ts', 'm4s', 'mp4', 'webm'].includes(ext);
 
-    // Rewrite relative segment URLs to absolute majorplay.net URLs.
-    // Do NOT route variants through /play — CDN anti-hotlinking blocks Stealth
-    // for sub-playlists. Player has real browser TLS and can fetch them directly.
-    if (isM3u8) {
-      const baseUrl = new URL(targetUrl);
-      const rewriteUri = (uri) => new URL(uri, targetUrl).href;
-      body = body.replace(/^(?!#)(\S+)/gm, (match) => rewriteUri(match));
-      body = body.replace(/URI="([^"]+)"/g, (m, uri) => `URI="${rewriteUri(uri)}"`);
+    if (isBinary) {
+      // Binary segment (.ts / .m4s / .mp4) — pass through with correct MIME
+      const mimeMap = { ts: 'video/mp2t', m4s: 'video/iso.segment', mp4: 'video/mp4' };
+      res.setHeader('Content-Type', mimeMap[ext] || 'application/octet-stream');
+      return res.send(Buffer.from(body, 'utf-8'));
     }
 
+    // Rewrite ALL URIs to route through our proxy
+    // Single bottleneck: every sub-playlist + segment goes /play → Stealth → CDN
     if (isM3u8) {
+      const proxyBase = `https://${req.get('host')}/play?url=`;
+      const rewriteUri = (uri) => proxyBase + encodeURIComponent(new URL(uri, targetUrl).href);
+      body = body.replace(/^(?!#)(\S+)/gm, (match) => rewriteUri(match));
+      body = body.replace(/URI="([^"]+)"/g, (m, uri) => `URI="${rewriteUri(uri)}"`);
       res.setHeader('Content-Type', 'application/vnd.apple.mpegurl');
-      res.send(body);
-    } else if (isJson) {
+      return res.send(body);
+    }
+
+    if (isJson) {
+      // Parse JSON, extract m3u8 URL if present
       try {
         const cfg = JSON.parse(body);
         const m3u8Url = cfg.url || cfg.stream || cfg.file;
-        if (m3u8Url) return res.redirect(307, m3u8Url);
+        if (m3u8Url) return res.redirect(307, `/play?url=${encodeURIComponent(m3u8Url)}`);
       } catch (_) {}
-      res.setHeader('Content-Type', 'application/octet-stream');
-      res.send(body);
-    } else {
-      // Binary segment — pass through directly
-      const ext = (targetUrl.split('?')[0].split('.').pop() || '').toLowerCase();
-      const mimeMap = { ts: 'video/mp2t', m4s: 'video/iso.segment', mp4: 'video/mp4', vtt: 'text/vtt' };
-      res.setHeader('Content-Type', mimeMap[ext] || 'application/octet-stream');
-      res.send(Buffer.from(body, 'utf-8'));
     }
+
+    // Fallback — raw passthrough
+    res.setHeader('Content-Type', 'application/octet-stream');
+    res.send(body);
   } catch (err) {
     console.error('[play] proxy error:', err.message);
     res.status(502).send('Stream proxy error');
