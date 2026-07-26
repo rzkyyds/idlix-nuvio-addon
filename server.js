@@ -169,6 +169,7 @@ const STEALTH_URL = (process.env.STEALTH_API_URL || 'https://kisutstealth.zeabur
 
 /** Call the Stealth Go service — same pattern as IDLIX-API's browserFetch(). */
 async function stealthFetch(targetUrl) {
+  console.log(`[stealth] fetching ${targetUrl.substring(0, 80)}... via ${STEALTH_URL}`);
   const resp = await fetch(`${STEALTH_URL}/v1/request`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
