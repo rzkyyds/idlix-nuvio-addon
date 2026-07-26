@@ -185,12 +185,18 @@ app.get('/play', async (req, res) => {
     const contentType = resp.headers['content-type'] || '';
     let body = typeof resp.data === 'string' ? resp.data : JSON.stringify(resp.data);
 
-    // Rewrite relative M3U8 segment URLs to absolute (prepend source base)
+    // Rewrite relative M3U8 segment URLs to absolute AND route through our proxy
+    // Player rejects .json extensions — all segments must pass /play
     if (body.trim().startsWith('#EXTM3U')) {
       const sourceBase = targetUrl.substring(0, targetUrl.lastIndexOf('/') + 1);
-      body = body.replace(/^(?!#)(\S+\.\w+)/gm, (match) => {
-        if (match.startsWith('http')) return match;
-        return sourceBase + match;
+      const proxyBase = `https://${req.get('host')}/play?url=`;
+      body = body.replace(/^(?!#)(\S+)/gm, (match) => {
+        if (match.startsWith('http')) {
+          // Already absolute — route through proxy
+          return proxyBase + encodeURIComponent(match);
+        }
+        // Relative — prefix with source base first, then proxy
+        return proxyBase + encodeURIComponent(sourceBase + match);
       });
     }
 
