@@ -161,60 +161,88 @@ app.get('/health', (req, res) => {
   res.json({ ok: true });
 });
 
-// Proxy: unwrap IDLIX config.json URLs into playable content
-// IDLIX stream returns URLs like .../config-XXX.json which are actually M3U8
+// Proxy: route blocked CDN requests through Stealth for correct TLS fingerprint.
+// Plain Node.js fetch() returns fake content (.png/.webp/.js) — Stealth gives real .ts.
+//
+// IDLIX stream returns URLs like .../config-XXX.json which are actually M3U8.
 // Player rejects .json extension → serve with application/vnd.apple.mpegurl
-const axios = require('axios');
+
+const STEALTH_URL = (process.env.STEALTH_API_URL || 'https://kisutstealth.zeabur.app').replace(/\/$/, '');
+
+/** Call the Stealth Go service — same pattern as IDLIX-API's browserFetch(). */
+async function stealthFetch(targetUrl) {
+  const resp = await fetch(`${STEALTH_URL}/v1/request`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      url: targetUrl,
+      method: 'GET',
+      disableMedia: true,
+      headers: {
+        'accept': '*/*',
+        'accept-language': 'en-US,en;q=0.9',
+      },
+    }),
+  });
+  if (!resp.ok) {
+    console.error(`[stealth] HTTP ${resp.status} from stealth service`);
+    return null;
+  }
+  const data = await resp.json();
+  if (data.status !== 'ok' || !data.solution) {
+    console.error('[stealth] solve failed:', data);
+    return null;
+  }
+  return {
+    status: data.solution.status,
+    ok: data.solution.status >= 200 && data.solution.status < 300,
+    text: data.solution.response || '',
+  };
+}
+
 app.get('/play', async (req, res) => {
   try {
     const targetUrl = req.query.url;
     if (!targetUrl) return res.status(400).send('Missing ?url=');
 
-    // Fetch the JSON config (it returns M3U8 content)
-    const resp = await axios.get(targetUrl, {
-      timeout: 15000,
-      responseType: 'text',
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        'Accept': '*/*',
-        'Referer': 'https://idlix.com/',
-      },
-      maxRedirects: 5,
-    });
+    const result = await stealthFetch(targetUrl);
+    if (!result) return res.status(502).send('Stealth proxy error');
 
-    const contentType = resp.headers['content-type'] || '';
-    let body = typeof resp.data === 'string' ? resp.data : JSON.stringify(resp.data);
+    let body = result.text || '';
+    if (!body.trim()) return res.status(502).send('Empty response from CDN');
 
-    // Rewrite relative M3U8 segment URLs to absolute AND route through our proxy
+    const isM3u8 = body.trim().startsWith('#EXTM3U');
+    const isJson = body.trim().startsWith('{') || body.trim().startsWith('[');
+
+    // Rewrite relative segment URLs through our proxy (same pattern as before)
     // Player rejects .json extensions — all segments must pass /play
-    if (body.trim().startsWith('#EXTM3U')) {
+    if (isM3u8) {
       const proxyBase = `https://${req.get('host')}/play?url=`;
       const rewriteUri = (uri) => {
-        // Resolve relative URIs against the original config URL (handles /abs/path and relative)
         const absolute = new URL(uri, targetUrl).href;
         return proxyBase + encodeURIComponent(absolute);
       };
-      // Rewrite non-comment lines (segment/variant URIs)
       body = body.replace(/^(?!#)(\S+)/gm, (match) => rewriteUri(match));
-      // Rewrite URI="..." inside #EXT-X-MEDIA directives (regex skips comment lines)
       body = body.replace(/URI="([^"]+)"/g, (m, uri) => `URI="${rewriteUri(uri)}"`);
     }
 
-    // If it's M3U8, serve with proper content type
-    if (body.trim().startsWith('#EXTM3U') || contentType.includes('mpegurl') || contentType.includes('vnd.apple')) {
+    if (isM3u8) {
       res.setHeader('Content-Type', 'application/vnd.apple.mpegurl');
       res.send(body);
-    } else if (contentType.includes('json') || body.trim().startsWith('{')) {
-      // JSON config — extract m3u8 URL
+    } else if (isJson) {
       try {
-        const cfg = typeof resp.data === 'string' ? JSON.parse(resp.data) : resp.data;
+        const cfg = JSON.parse(body);
         const m3u8Url = cfg.url || cfg.stream || cfg.file;
         if (m3u8Url) return res.redirect(307, m3u8Url);
       } catch (_) {}
       res.setHeader('Content-Type', 'application/octet-stream');
       res.send(body);
     } else {
-      res.send(body);
+      // Binary segment — pass through directly
+      const ext = (targetUrl.split('?')[0].split('.').pop() || '').toLowerCase();
+      const mimeMap = { ts: 'video/mp2t', m4s: 'video/iso.segment', mp4: 'video/mp4', vtt: 'text/vtt' };
+      res.setHeader('Content-Type', mimeMap[ext] || 'application/octet-stream');
+      res.send(Buffer.from(body, 'utf-8'));
     }
   } catch (err) {
     console.error('[play] proxy error:', err.message);
