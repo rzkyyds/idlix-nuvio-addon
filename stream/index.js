@@ -55,6 +55,15 @@ async function streamHandler({ type, id, config }) {
       proxyBase,
     });
 
+    // Add web player external URL — browser has BoringSSL TLS, can play directly
+    const addonUrl = process.env.ADDON_URL || 'https://kisutnuvio.zeabur.app';
+    const idlixApiUrl = process.env.IDLIX_API_URL || 'https://kisutidlix.zeabur.app/api';
+    const streamApiPath = contentType === 'series' && parsed.season
+      ? `/series/${parsed.slug}/season/${parsed.season}/episode/${parsed.episode}/stream`
+      : `/movie/${parsed.slug}/stream`;
+    const title = streamPayload.title || parsed.slug;
+    streams[0].externalUrl = `${addonUrl}/watch.html?url=${encodeURIComponent(idlixApiUrl + streamApiPath)}&name=${encodeURIComponent(title)}`;
+
     return { streams };
   } catch (err) {
     console.error('[stream] error:', err.message);

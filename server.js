@@ -5,6 +5,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const crypto = require('crypto');
+const path = require('path');
 const { getRouter } = require('stremio-addon-sdk');
 const { AsyncLocalStorage } = require('async_hooks');
 
@@ -267,6 +268,9 @@ app.get('/play', async (req, res) => {
     res.status(502).send('Stream proxy error');
   }
 });
+
+// Static files (web player)
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Stremio SDK router (catalog / meta / stream)
 const addonRouter = getRouter(addonInterface);
