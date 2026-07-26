@@ -24,7 +24,12 @@ async function streamHandler({ type, id, config }) {
     if (contentType === 'series' && parsed.season && parsed.episode) {
       streamPayload = await idlix.getEpisodeStream(parsed.slug, parsed.season, parsed.episode);
     } else if (contentType === 'series') {
-      return { streams: [] };
+      // IMDB resolved to series but no season/episode — try movie stream as fallback
+      // (IDLIX miscategorizes some movies as series)
+      streamPayload = await idlix.getMovieStream(parsed.slug);
+      if (!streamPayload) {
+        streamPayload = await idlix.getMovie(parsed.slug);
+      }
     } else {
       streamPayload = await idlix.getMovieStream(parsed.slug);
     }
