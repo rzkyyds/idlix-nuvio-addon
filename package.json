@@ -1,0 +1,27 @@
+{
+  "name": "idlix-nuvio-addon",
+  "version": "1.0.0",
+  "description": "Stremio/Nuvio addon that wraps IDLIX-API for movies and series streaming",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "stremio",
+    "nuvio",
+    "idlix",
+    "addon"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.7.9",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "stremio-addon-sdk": "^1.6.10",
+    "ttl-cache": "^1.0.2"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
