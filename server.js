@@ -188,16 +188,16 @@ app.get('/play', async (req, res) => {
     // Rewrite relative M3U8 segment URLs to absolute AND route through our proxy
     // Player rejects .json extensions — all segments must pass /play
     if (body.trim().startsWith('#EXTM3U')) {
-      const sourceBase = targetUrl.substring(0, targetUrl.lastIndexOf('/') + 1);
       const proxyBase = `https://${req.get('host')}/play?url=`;
-      body = body.replace(/^(?!#)(\S+)/gm, (match) => {
-        if (match.startsWith('http')) {
-          // Already absolute — route through proxy
-          return proxyBase + encodeURIComponent(match);
-        }
-        // Relative — prefix with source base first, then proxy
-        return proxyBase + encodeURIComponent(sourceBase + match);
-      });
+      const rewriteUri = (uri) => {
+        // Resolve relative URIs against the original config URL (handles /abs/path and relative)
+        const absolute = new URL(uri, targetUrl).href;
+        return proxyBase + encodeURIComponent(absolute);
+      };
+      // Rewrite non-comment lines (segment/variant URIs)
+      body = body.replace(/^(?!#)(\S+)/gm, (match) => rewriteUri(match));
+      // Rewrite URI="..." inside #EXT-X-MEDIA directives (regex skips comment lines)
+      body = body.replace(/URI="([^"]+)"/g, (m, uri) => `URI="${rewriteUri(uri)}"`);
     }
 
     // If it's M3U8, serve with proper content type
