@@ -161,6 +161,21 @@ app.get('/health', (req, res) => {
   res.json({ ok: true });
 });
 
+// Debug: test Stealth connectivity
+app.get('/stealth-debug', async (req, res) => {
+  try {
+    const testUrl = req.query.url || 'https://e2e.majorplay.net/v/z3/test';
+    const result = await stealthFetch(testUrl);
+    res.json({ 
+      stealth_url: STEALTH_URL,
+      url_tested: testUrl,
+      result: result ? { ok: result.ok, status: result.status, text_len: result.text.length, preview: result.text.substring(0, 200) } : null
+    });
+  } catch (err) {
+    res.json({ error: err.message, stealth_url: STEALTH_URL });
+  }
+});
+
 // Proxy: FULL Stealth HLS proxy — ALL CDN requests through Stealth.
 // Majorplay.net CDN serves fake content (.webp/.png) to non-browser TLS.
 // Only Chromium BoringSSL fingerprint gets real video data.
