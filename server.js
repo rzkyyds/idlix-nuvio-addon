@@ -180,7 +180,7 @@ app.get('/stealth-debug', async (req, res) => {
 // Majorplay.net CDN serves fake content (.webp/.png) to non-browser TLS.
 // Only Chromium BoringSSL fingerprint gets real video data.
 
-const STEALTH_URL = (process.env.STEALTH_API_URL || 'https://kisutstealth.zeabur.app').replace(/\/$/, '');
+const STEALTH_URL = process.env.STEALTH_API_URL || 'https://kisutstealth.zeabur.app';
 
 /** Call the Stealth Go service — same pattern as IDLIX-API's browserFetch(). */
 async function stealthFetch(targetUrl) {
@@ -224,7 +224,7 @@ app.get('/play', async (req, res) => {
     const result = await stealthFetch(targetUrl);
     if (!result) return res.status(502).send('Stealth proxy error');
 
-    const body = result.text || '';
+    let body = result.text || '';
     if (!body.trim()) return res.status(502).send('Empty response from CDN');
 
     const isM3u8 = body.trim().startsWith('#EXTM3U');
