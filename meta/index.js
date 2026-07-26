@@ -3,40 +3,40 @@
 const idlix = require('../lib/idlix-client');
 const mapper = require('../lib/mapper');
 
-/**
- * Handle meta requests for movies and series.
- * Parses idlix:{type}:{slug} IDs.
- */
 async function metaHandler({ type, id }) {
   try {
-    const parsed = mapper.parseId(id);
-    if (!parsed || !parsed.slug) {
-      return { meta: null };
+    let parsed = mapper.parseId(id);
+    if (!parsed) return { meta: null };
+
+    // Resolve IMDB IDs to IDLIX slugs
+    if (parsed.imdbId && !parsed.slug) {
+      const resolved = await mapper.resolveImdbToIdlix(parsed.imdbId, type);
+      if (resolved && resolved.slug) {
+        parsed = resolved;
+      }
     }
+
+    if (!parsed || !parsed.slug) return { meta: null };
 
     const contentType = parsed.type || (type === 'series' ? 'series' : 'movie');
     let detail = null;
 
     if (contentType === 'series') {
       detail = await idlix.getSeries(parsed.slug);
-      // Fallback: some entries are only under /movie
       if (!detail) detail = await idlix.getMovie(parsed.slug);
     } else {
       detail = await idlix.getMovie(parsed.slug);
       if (!detail) detail = await idlix.getSeries(parsed.slug);
     }
 
-    if (!detail) {
-      return { meta: null };
-    }
+    if (!detail) return { meta: null };
 
-    const resolvedType =
-      detail.type === 'series' || detail.type === 'tv'
-        ? 'series'
-        : contentType;
-
+    const resolvedType = detail.type === 'series' || detail.type === 'tv' ? 'series' : contentType;
     const meta = mapper.toMetaDetail(detail, resolvedType, parsed.slug);
     if (!meta) return { meta: null };
+
+    // Attach IMDB ID if we resolved one
+    if (parsed.imdbId) meta.imdb_id = parsed.imdbId;
 
     return { meta };
   } catch (err) {
