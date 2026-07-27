@@ -1,5 +1,5 @@
 {
-  "name": "kisut-streams-addon",
+  "name": "tonstreams-addon",
   "version": "1.0.0",
   "description": "Stremio/Nuvio addon aggregator using CloudStream-derived Indo/OTT sources plus anime/global direct HTTP upstreams",
   "main": "server.js",

@@ -1,4 +1,4 @@
-# Kisut Streams Addon
+# TonStreams Addon
 
 Stremio/Nuvio addon aggregator for Indo movies/series, OTT/network catalogs, anime catalogs, and foreign/global direct HTTP streams.
 

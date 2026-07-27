@@ -135,7 +135,7 @@ app.get('*manifest.json', (req, res) => {
 // Health check
 app.get('/', (req, res) => {
   res.json({
-    name: 'Kisut Streams Addon',
+    name: 'TonStreams Addon',
     version: addonInterface.manifest.version,
     manifest: '/manifest.json',
     status: 'ok',
@@ -165,7 +165,7 @@ app.use((req, res, next) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Kisut Streams Addon listening on http://127.0.0.1:${PORT}`);
+  console.log(`TonStreams Addon listening on http://127.0.0.1:${PORT}`);
   console.log(`Manifest: http://127.0.0.1:${PORT}/manifest.json`);
   console.log('Indo/OTT source: CloudStream repos (no IDLIX API)');
 });

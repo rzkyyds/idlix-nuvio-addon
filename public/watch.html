@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Kisut Player</title>
+  <title>TonStreams Player</title>
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -53,7 +53,7 @@ const qualityEl = document.getElementById('quality');
 
 const params = new URLSearchParams(window.location.search);
 const streamJsonUrl = params.get('url');
-const name = params.get('name') || params.get('title') || 'Kisut Stream';
+const name = params.get('name') || params.get('title') || 'TonStream';
 
 titleEl.textContent = name;
 

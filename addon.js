@@ -19,12 +19,12 @@ const GENRE_LABELS = [
 ];
 
 const manifest = {
-  id: 'org.kisut.streams',
+  id: 'org.tonstreams.addon',
   version: '1.2.0',
-  name: 'Kisut Streams',
+  name: 'TonStreams',
   description: 'Indo + OTT from CloudStream-derived providers, plus anime and foreign direct HTTP streams. NSFW filtered, no IDLIX API, no P2P/torrents.',
-  logo: 'https://via.placeholder.com/256x256.png?text=Kisut',
-  background: 'https://via.placeholder.com/1920x1080.png?text=Kisut+Streams',
+  logo: 'https://via.placeholder.com/256x256.png?text=TonStreams',
+  background: 'https://via.placeholder.com/1920x1080.png?text=TonStreams',
   resources: ['catalog', 'meta', 'stream'],
   types: ['movie', 'series'],
   idPrefixes: ['cs', 'tt', 'tmdb', 'oa'],
@@ -32,31 +32,31 @@ const manifest = {
     {
       type: 'movie',
       id: 'top',
-      name: 'Kisut Indo Movies',
+      name: 'TonStreams Indo Movies',
       extra: [{ name: 'skip' }],
     },
     {
       type: 'series',
       id: 'top',
-      name: 'Kisut Indo Series',
+      name: 'TonStreams Indo Series',
       extra: [{ name: 'skip' }],
     },
     {
       type: 'movie',
       id: 'search',
-      name: 'Kisut Search Movies',
+      name: 'TonStreams Search Movies',
       extra: [{ name: 'search', isRequired: true }],
     },
     {
       type: 'series',
       id: 'search',
-      name: 'Kisut Search Series',
+      name: 'TonStreams Search Series',
       extra: [{ name: 'search', isRequired: true }],
     },
     {
       type: 'movie',
       id: 'genre',
-      name: 'Kisut Indo Movie Genre',
+      name: 'TonStreams Indo Movie Genre',
       extra: [
         { name: 'genre', isRequired: true, options: GENRE_LABELS },
         { name: 'skip' },
@@ -65,7 +65,7 @@ const manifest = {
     {
       type: 'series',
       id: 'genre',
-      name: 'Kisut Indo Series Genre',
+      name: 'TonStreams Indo Series Genre',
       extra: [
         { name: 'genre', isRequired: true, options: GENRE_LABELS },
         { name: 'skip' },
@@ -74,7 +74,7 @@ const manifest = {
     {
       type: 'movie',
       id: 'country',
-      name: 'Kisut Indo Movie Country',
+      name: 'TonStreams Indo Movie Country',
       extra: [
         { name: 'genre', isRequired: true, options: COUNTRIES },
         { name: 'skip' },
@@ -83,25 +83,25 @@ const manifest = {
     {
       type: 'series',
       id: 'network',
-      name: 'Kisut Indo / OTT',
+      name: 'TonStreams Indo / OTT',
       extra: [{ name: 'skip' }],
     },
     {
       type: 'series',
       id: 'anime-latest',
-      name: 'Kisut Anime Latest',
+      name: 'TonStreams Anime Latest',
       extra: [{ name: 'skip' }],
     },
     {
       type: 'series',
       id: 'anime-japan',
-      name: 'Kisut Anime Japan',
+      name: 'TonStreams Anime Japan',
       extra: [{ name: 'skip' }],
     },
     {
       type: 'series',
       id: 'anime-korea',
-      name: 'Kisut Anime Korea',
+      name: 'TonStreams Anime Korea',
       extra: [{ name: 'skip' }],
     },
   ],
