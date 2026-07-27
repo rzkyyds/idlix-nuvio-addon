@@ -1,6 +1,7 @@
 'use strict';
 
 const cloudstream = require('../lib/cloudstream-sources');
+const moviebox = require('../lib/moviebox-source');
 const upstreams = require('../lib/upstream-addons');
 const { filterMetas } = require('../lib/nsfw-filter');
 
@@ -30,26 +31,54 @@ async function catalogHandler({ type, id, extra = {} }) {
         break;
       case 'search': {
         const query = (extra.search || '').trim();
-        metas = await cloudstream.search(query, contentType);
+        const [movieboxResults, cloudstreamResults] = await Promise.all([
+          moviebox.search(query, contentType),
+          cloudstream.search(query, contentType),
+        ]);
+        metas = movieboxResults.concat(cloudstreamResults);
         break;
       }
-      case 'top':
-        metas = await cloudstream.getCatalog(contentType, contentType, page);
+      case 'top': {
+        const [movieboxResults, cloudstreamResults] = await Promise.all([
+          moviebox.getCatalog(contentType, contentType, page),
+          cloudstream.getCatalog(contentType, contentType, page),
+        ]);
+        metas = movieboxResults.concat(cloudstreamResults);
         break;
+      }
       case 'genre': {
         const genre = (extra.genre || '').trim() || 'action';
-        metas = await cloudstream.getCatalog(genre, contentType, page);
+        const [movieboxResults, cloudstreamResults] = await Promise.all([
+          moviebox.getCatalog(genre, contentType, page),
+          cloudstream.getCatalog(genre, contentType, page),
+        ]);
+        metas = movieboxResults.concat(cloudstreamResults);
         break;
       }
-      case 'country':
-        metas = await cloudstream.getCatalog('ott', 'movie', page);
+      case 'country': {
+        const [movieboxResults, cloudstreamResults] = await Promise.all([
+          moviebox.getCatalog('ott', 'movie', page),
+          cloudstream.getCatalog('ott', 'movie', page),
+        ]);
+        metas = movieboxResults.concat(cloudstreamResults);
         break;
-      case 'network':
-        metas = await cloudstream.getCatalog('series', 'series', page);
+      }
+      case 'network': {
+        const [movieboxResults, cloudstreamResults] = await Promise.all([
+          moviebox.getCatalog('series', 'series', page),
+          cloudstream.getCatalog('series', 'series', page),
+        ]);
+        metas = movieboxResults.concat(cloudstreamResults);
         break;
-      default:
-        metas = await cloudstream.getCatalog(contentType, contentType, page);
+      }
+      default: {
+        const [movieboxResults, cloudstreamResults] = await Promise.all([
+          moviebox.getCatalog(contentType, contentType, page),
+          cloudstream.getCatalog(contentType, contentType, page),
+        ]);
+        metas = movieboxResults.concat(cloudstreamResults);
         break;
+      }
     }
 
     return { metas: filterMetas(metas) };

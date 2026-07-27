@@ -1,6 +1,7 @@
 'use strict';
 
 const cloudstream = require('../lib/cloudstream-sources');
+const moviebox = require('../lib/moviebox-source');
 const upstreams = require('../lib/upstream-addons');
 const { isNsfw } = require('../lib/nsfw-filter');
 
@@ -13,6 +14,11 @@ async function metaHandler({ type, id }) {
 
     if (id && id.startsWith('cs:')) {
       const meta = await cloudstream.getMeta(id);
+      return { meta: meta && !isNsfw(meta) ? meta : null };
+    }
+
+    if (id && id.startsWith('mb:')) {
+      const meta = await moviebox.getMeta(id);
       return { meta: meta && !isNsfw(meta) ? meta : null };
     }
 
