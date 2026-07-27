@@ -7,6 +7,30 @@ const { filterMetas } = require('../lib/nsfw-filter');
 
 const PAGE_SIZE = 20;
 
+const SEARCH_ALIASES = new Map([
+  ['crocodile tears', 'air mata buaya'],
+  ['crocodile tears 2024', 'air mata buaya'],
+  ['crocodile tears 2026', 'air mata buaya'],
+]);
+
+function searchQueries(query) {
+  const q = String(query || '').trim();
+  if (!q) return [];
+  const normalized = q.toLowerCase().replace(/\s+/g, ' ');
+  const alias = SEARCH_ALIASES.get(normalized);
+  return alias && alias !== q ? [q, alias] : [q];
+}
+
+function dedupeMetas(metas) {
+  const seen = new Set();
+  return metas.filter((meta) => {
+    const key = meta && (meta.id || `${meta.type}:${meta.name}:${meta.year || ''}`);
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 function pageFromSkip(skip) {
   const n = parseInt(skip, 10);
   if (!Number.isFinite(n) || n <= 0) return 1;
@@ -30,12 +54,12 @@ async function catalogHandler({ type, id, extra = {} }) {
         metas = await upstreams.getOnlyAnimesCatalog('country_Korea', 'series');
         break;
       case 'search': {
-        const query = (extra.search || '').trim();
-        const [movieboxResults, cloudstreamResults] = await Promise.all([
+        const queries = searchQueries(extra.search);
+        const results = await Promise.all(queries.flatMap((query) => [
           moviebox.search(query, contentType),
           cloudstream.search(query, contentType),
-        ]);
-        metas = movieboxResults.concat(cloudstreamResults);
+        ]));
+        metas = dedupeMetas(results.flat());
         break;
       }
       case 'top': {
