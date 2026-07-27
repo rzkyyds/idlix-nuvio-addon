@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>IDLIX Player</title>
+  <title>Kisut Player</title>
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -53,7 +53,7 @@ const qualityEl = document.getElementById('quality');
 
 const params = new URLSearchParams(window.location.search);
 const streamJsonUrl = params.get('url');
-const name = params.get('name') || params.get('title') || 'IDLIX Stream';
+const name = params.get('name') || params.get('title') || 'Kisut Stream';
 
 titleEl.textContent = name;
 
@@ -65,7 +65,7 @@ if (!streamJsonUrl) {
 
 async function initPlayer() {
   try {
-    // Fetch the IDLIX stream config (master M3U8 as JSON)
+    // Fetch the stream config (master M3U8 as JSON)
     const resp = await fetch(streamJsonUrl, {
       headers: {
         'Accept': '*/*',
@@ -83,7 +83,7 @@ async function initPlayer() {
     if (text.trim().startsWith('{')) {
       try {
         const cfg = JSON.parse(text);
-        // IDLIX API returns: { success, data: { streamUrl, subtitles, ... } }
+        // Supported config shape: { success, data: { streamUrl, subtitles, ... } }
         const data = cfg.data || cfg;
         m3u8Url = data.streamUrl || data.url || data.file || data.playlist;
         

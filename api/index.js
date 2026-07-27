@@ -1,6 +1,6 @@
 "use strict";
 
-const idlix = require("../lib/idlix-client");
+const cloudstream = require("../lib/cloudstream-sources");
 const upstreams = require("../lib/upstream-addons");
 const { NSFW_TERMS } = require("../lib/nsfw-filter");
 
@@ -13,15 +13,8 @@ function mountApi(app) {
         p2p: false,
         nsfwFilterTerms: NSFW_TERMS,
       },
-      sources: [
-        {
-          id: "idlix",
-          name: "IDLIX API",
-          coverage: ["Indonesia", "OTT", "movies", "series"],
-          baseUrl: idlix.BASE_URL,
-          mode: "catalog/meta/stream",
-          notes: "Indo catalog bagus, tapi beberapa host/CDN perlu externalUrl/web player.",
-        },
+      cloudstreamSources: cloudstream.getSourceSummary(),
+      streamUpstreams: [
         {
           id: "hdhub",
           name: "HdHub",

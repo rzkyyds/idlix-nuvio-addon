@@ -4,7 +4,7 @@ Stremio/Nuvio addon aggregator for Indo movies/series, OTT/network catalogs, ani
 
 ## Sources
 
-- `IDLIX_API_URL` — Indo movies/series catalog, metadata, and streams.
+- `CloudStream-derived Indo/OTT providers` — Pusatmovie, Filmlokal, LayarWarna, Kawanfilm, LayarKaca. Source logic ported from `Asm0d3usX/CloudX` and `TeKuma25/IndoStream`; no IDLIX API dependency.
 - `HdHub` upstream addon — foreign/global movies and series streams for `tt*`, `tmdb:*`, and `kitsu:*` IDs.
 - `Flix-Streams` upstream addon — extra direct HTTP stream source when its public endpoint accepts the request.
 - `OnlyAnimes` upstream addon — anime catalogs, metadata, and episode streams for `oa:*` IDs.
@@ -41,7 +41,6 @@ GET /stream/series/<id>.json
 ```env
 PORT=7000
 ADDON_URL=https://your-addon-domain.example
-IDLIX_API_URL=https://kisutidlix.zeabur.app/api
 CACHE_TTL=300
 UPSTREAM_TIMEOUT_MS=18000
 MAX_UPSTREAM_STREAMS=40
@@ -56,4 +55,4 @@ ONLYANIMES_ADDON_URL=https://onlyanimes.stravo.site/local
 
 - This is HTTP/direct-stream oriented, not torrent/debrid.
 - Some upstream providers return donation/config links before playable streams; the addon keeps them if upstream exposes them as Stremio streams.
-- IDLIX/MajorPlay can require the existing web-player/externalUrl path for Android TV because native players may receive CDN decoys.
+- IDLIX API is intentionally not used for Indo/OTT because the MajorPlay path is session-gated.

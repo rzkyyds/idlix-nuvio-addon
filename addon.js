@@ -5,15 +5,12 @@ const catalogHandler = require('./catalog');
 const metaHandler = require('./meta');
 const streamHandler = require('./stream');
 
-const YEARS = Array.from({ length: 30 }, (_, i) => String(2026 - i));
-
 const COUNTRIES = [
   'US', 'GB', 'ID', 'KR', 'JP', 'CN', 'IN', 'TH', 'PH', 'MY',
   'SG', 'AU', 'CA', 'FR', 'DE', 'IT', 'ES', 'BR', 'MX', 'TR',
   'AR', 'HK', 'TW', 'VN', 'RU', 'NL', 'SE', 'NO', 'DK', 'BE',
 ];
 
-// Values match IDLIX API slugs (Stremio shows option strings as-is)
 const GENRE_LABELS = [
   'action', 'adventure', 'animation', 'comedy', 'crime', 'documentary',
   'drama', 'family', 'fantasy', 'history', 'horror', 'kids', 'music',
@@ -21,24 +18,16 @@ const GENRE_LABELS = [
   'thriller', 'tv-movie', 'war', 'western',
 ];
 
-const NETWORK_OPTIONS = [
-  'netflix',
-  'hbo',
-  'prime-video',
-  'disney-plus',
-  'apple-tv-plus',
-];
-
 const manifest = {
   id: 'org.kisut.streams',
-  version: '1.1.0',
+  version: '1.2.0',
   name: 'Kisut Streams',
-  description: 'Indo + OTT + anime + foreign direct HTTP streams. Aggregates IDLIX API, HdHub, Flix-Streams, and OnlyAnimes. NSFW filtered, no P2P/torrents.',
+  description: 'Indo + OTT from CloudStream-derived providers, plus anime and foreign direct HTTP streams. NSFW filtered, no IDLIX API, no P2P/torrents.',
   logo: 'https://via.placeholder.com/256x256.png?text=Kisut',
   background: 'https://via.placeholder.com/1920x1080.png?text=Kisut+Streams',
   resources: ['catalog', 'meta', 'stream'],
   types: ['movie', 'series'],
-  idPrefixes: ['idlix', 'tt', 'tmdb', 'oa'],
+  idPrefixes: ['cs', 'tt', 'tmdb', 'oa'],
   catalogs: [
     {
       type: 'movie',
@@ -94,11 +83,8 @@ const manifest = {
     {
       type: 'series',
       id: 'network',
-      name: 'Kisut OTT / Network',
-      extra: [
-        { name: 'genre', isRequired: true, options: NETWORK_OPTIONS },
-        { name: 'skip' },
-      ],
+      name: 'Kisut Indo / OTT',
+      extra: [{ name: 'skip' }],
     },
     {
       type: 'series',
@@ -126,15 +112,7 @@ const manifest = {
     configurable: true,
     configurationRequired: false,
   },
-  config: [
-    {
-      key: 'cookie',
-      type: 'text',
-      title: 'Optional Cookie / Token',
-      default: '',
-      required: false,
-    },
-  ],
+  config: [],
 };
 const builder = new addonBuilder(manifest);
 
