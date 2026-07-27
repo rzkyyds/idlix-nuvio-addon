@@ -2,6 +2,8 @@
 
 const idlix = require('../lib/idlix-client');
 const mapper = require('../lib/mapper');
+const upstreams = require('../lib/upstream-addons');
+const { filterMetas } = require('../lib/nsfw-filter');
 
 const PAGE_SIZE = 20;
 
@@ -34,6 +36,21 @@ async function catalogHandler({ type, id, extra = {} }) {
     let items = [];
 
     switch (id) {
+      case 'anime-latest': {
+        items = await upstreams.getOnlyAnimesCatalog('sort_Latest', 'series');
+        break;
+      }
+
+      case 'anime-japan': {
+        items = await upstreams.getOnlyAnimesCatalog('country_Japan', 'series');
+        break;
+      }
+
+      case 'anime-korea': {
+        items = await upstreams.getOnlyAnimesCatalog('country_Korea', 'series');
+        break;
+      }
+
       case 'search': {
         const query = (extra.search || '').trim();
         if (!query || query.length < 2) {
@@ -109,7 +126,9 @@ async function catalogHandler({ type, id, extra = {} }) {
       }
     }
 
-    const metas = mapper.toMetaPreviewList(items, contentType);
+    const metas = id.startsWith('anime-')
+      ? filterMetas(items)
+      : filterMetas(mapper.toMetaPreviewList(items, contentType));
     return { metas };
   } catch (err) {
     console.error('[catalog] error:', err.message);

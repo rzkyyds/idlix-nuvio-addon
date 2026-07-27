@@ -10,6 +10,7 @@ const { getRouter } = require('stremio-addon-sdk');
 const { AsyncLocalStorage } = require('async_hooks');
 
 const addonInterface = require('./addon');
+const mountApi = require('./api');
 
 const PORT = parseInt(process.env.PORT || '7000', 10);
 const app = express();
@@ -27,6 +28,8 @@ global.requestContext = requestContext;
 
 app.use(cors());
 app.use(express.json());
+app.set('trust proxy', 1);
+mountApi(app);
 
 /**
  * Extract personalization params from query string and path segments
@@ -151,7 +154,7 @@ app.get('*manifest.json', (req, res) => {
 // Health check
 app.get('/', (req, res) => {
   res.json({
-    name: 'IDLIX Nuvio Addon',
+    name: 'Kisut Streams Addon',
     version: addonInterface.manifest.version,
     manifest: '/manifest.json',
     status: 'ok',
@@ -287,7 +290,7 @@ app.use((req, res, next) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`IDLIX Nuvio Addon listening on http://127.0.0.1:${PORT}`);
+  console.log(`Kisut Streams Addon listening on http://127.0.0.1:${PORT}`);
   console.log(`Manifest: http://127.0.0.1:${PORT}/manifest.json`);
   console.log(`IDLIX API: ${process.env.IDLIX_API_URL || 'https://kisutidlix.zeabur.app/api'}`);
 });

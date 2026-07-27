@@ -30,74 +30,71 @@ const NETWORK_OPTIONS = [
 ];
 
 const manifest = {
-  id: 'org.idlix.addon',
-  version: '1.0.0',
-  name: 'IDLIX',
-  description: 'Watch movies and series from IDLIX via IDLIX-API. Catalogs, search, and streams for Nuvio/Stremio.',
-  logo: 'https://via.placeholder.com/256x256.png?text=IDLIX',
-  background: 'https://via.placeholder.com/1920x1080.png?text=IDLIX',
+  id: 'org.kisut.streams',
+  version: '1.1.0',
+  name: 'Kisut Streams',
+  description: 'Indo + OTT + anime + foreign direct HTTP streams. Aggregates IDLIX API, HdHub, Flix-Streams, and OnlyAnimes. NSFW filtered, no P2P/torrents.',
+  logo: 'https://via.placeholder.com/256x256.png?text=Kisut',
+  background: 'https://via.placeholder.com/1920x1080.png?text=Kisut+Streams',
   resources: ['catalog', 'meta', 'stream'],
   types: ['movie', 'series'],
-  idPrefixes: ['idlix', 'tt'],
+  idPrefixes: ['idlix', 'tt', 'tmdb', 'oa'],
   catalogs: [
     {
       type: 'movie',
       id: 'top',
-      name: 'IDLIX Top',
+      name: 'Kisut Indo Movies',
+      extra: [{ name: 'skip' }],
+    },
+    {
+      type: 'series',
+      id: 'top',
+      name: 'Kisut Indo Series',
       extra: [{ name: 'skip' }],
     },
     {
       type: 'movie',
+      id: 'search',
+      name: 'Kisut Search Movies',
+      extra: [{ name: 'search', isRequired: true }],
+    },
+    {
+      type: 'series',
+      id: 'search',
+      name: 'Kisut Search Series',
+      extra: [{ name: 'search', isRequired: true }],
+    },
+    {
+      type: 'movie',
       id: 'genre',
-      name: 'IDLIX Genre',
+      name: 'Kisut Indo Movie Genre',
       extra: [
         { name: 'genre', isRequired: true, options: GENRE_LABELS },
         { name: 'skip' },
       ],
     },
     {
-      type: 'movie',
-      id: 'year',
-      name: 'IDLIX Year',
+      type: 'series',
+      id: 'genre',
+      name: 'Kisut Indo Series Genre',
       extra: [
-        { name: 'genre', isRequired: true, options: YEARS },
+        { name: 'genre', isRequired: true, options: GENRE_LABELS },
         { name: 'skip' },
       ],
     },
     {
       type: 'movie',
       id: 'country',
-      name: 'IDLIX Country',
+      name: 'Kisut Indo Movie Country',
       extra: [
         { name: 'genre', isRequired: true, options: COUNTRIES },
         { name: 'skip' },
       ],
     },
     {
-      type: 'movie',
-      id: 'search',
-      name: 'IDLIX Search',
-      extra: [{ name: 'search', isRequired: true }],
-    },
-    {
-      type: 'series',
-      id: 'top',
-      name: 'IDLIX Top Series',
-      extra: [{ name: 'skip' }],
-    },
-    {
-      type: 'series',
-      id: 'genre',
-      name: 'IDLIX Series Genre',
-      extra: [
-        { name: 'genre', isRequired: true, options: GENRE_LABELS },
-        { name: 'skip' },
-      ],
-    },
-    {
       type: 'series',
       id: 'network',
-      name: 'IDLIX Network',
+      name: 'Kisut OTT / Network',
       extra: [
         { name: 'genre', isRequired: true, options: NETWORK_OPTIONS },
         { name: 'skip' },
@@ -105,14 +102,27 @@ const manifest = {
     },
     {
       type: 'series',
-      id: 'search',
-      name: 'IDLIX Series Search',
-      extra: [{ name: 'search', isRequired: true }],
+      id: 'anime-latest',
+      name: 'Kisut Anime Latest',
+      extra: [{ name: 'skip' }],
+    },
+    {
+      type: 'series',
+      id: 'anime-japan',
+      name: 'Kisut Anime Japan',
+      extra: [{ name: 'skip' }],
+    },
+    {
+      type: 'series',
+      id: 'anime-korea',
+      name: 'Kisut Anime Korea',
+      extra: [{ name: 'skip' }],
     },
   ],
   behaviorHints: {
     adult: false,
     p2p: false,
+    p2pNotSupported: true,
     configurable: true,
     configurationRequired: false,
   },
@@ -126,7 +136,6 @@ const manifest = {
     },
   ],
 };
-
 const builder = new addonBuilder(manifest);
 
 builder.defineCatalogHandler(async (args) => {

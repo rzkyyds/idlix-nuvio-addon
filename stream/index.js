@@ -2,11 +2,17 @@
 
 const idlix = require('../lib/idlix-client');
 const mapper = require('../lib/mapper');
+const upstreams = require('../lib/upstream-addons');
+const { filterStreams, isNsfw } = require('../lib/nsfw-filter');
 
 async function streamHandler({ type, id, config }) {
   try {
+    if (isNsfw(id)) return { streams: [] };
+
+    const upstreamDirectStreams = await upstreams.getAddonStreams(type, id);
+
     let parsed = mapper.parseId(id);
-    if (!parsed) return { streams: [] };
+    if (!parsed) return { streams: upstreamDirectStreams };
 
     // Resolve IMDB IDs to IDLIX slugs
     if (parsed.imdbId && !parsed.slug) {
@@ -16,7 +22,7 @@ async function streamHandler({ type, id, config }) {
       }
     }
 
-    if (!parsed || !parsed.slug) return { streams: [] };
+    if (!parsed || !parsed.slug) return { streams: upstreamDirectStreams };
 
     const contentType = parsed.type || (type === 'series' ? 'series' : 'movie');
     let streamPayload = null;
@@ -43,7 +49,7 @@ async function streamHandler({ type, id, config }) {
       }
     }
 
-    if (!streamPayload) return { streams: [] };
+    if (!streamPayload) return { streams: upstreamDirectStreams };
 
     // Build proxy base: use addon's own URL as proxy endpoint
     const proxyBase = (config && config.proxyBase) || process.env.ADDON_URL || '';
@@ -62,9 +68,11 @@ async function streamHandler({ type, id, config }) {
       ? `/series/${parsed.slug}/season/${parsed.season}/episode/${parsed.episode}/stream`
       : `/movie/${parsed.slug}/stream`;
     const title = streamPayload.title || parsed.slug;
-    streams[0].externalUrl = `${addonUrl}/watch.html?url=${encodeURIComponent(idlixApiUrl + streamApiPath)}&name=${encodeURIComponent(title)}`;
+    if (streams[0]) {
+      streams[0].externalUrl = `${addonUrl}/watch.html?url=${encodeURIComponent(idlixApiUrl + streamApiPath)}&name=${encodeURIComponent(title)}`;
+    }
 
-    return { streams };
+    return { streams: filterStreams([...streams, ...upstreamDirectStreams]) };
   } catch (err) {
     console.error('[stream] error:', err.message);
     return { streams: [] };

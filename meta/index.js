@@ -2,11 +2,18 @@
 
 const idlix = require('../lib/idlix-client');
 const mapper = require('../lib/mapper');
+const upstreams = require('../lib/upstream-addons');
+const { isNsfw } = require('../lib/nsfw-filter');
 
 async function metaHandler({ type, id }) {
   try {
+    if (id && id.startsWith('oa:')) {
+      const meta = await upstreams.getOnlyAnimesMeta(type, id);
+      return { meta: meta && !isNsfw(meta) ? meta : null };
+    }
+
     let parsed = mapper.parseId(id);
-    if (!parsed) return { meta: null };
+    if (!parsed || isNsfw(id)) return { meta: null };
 
     // Resolve IMDB IDs to IDLIX slugs
     if (parsed.imdbId && !parsed.slug) {
