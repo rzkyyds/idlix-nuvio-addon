@@ -42,8 +42,10 @@ async function catalogHandler({ type, id, extra = {} }) {
         break;
       }
       case 'country':
+        metas = await cloudstream.getCatalog('ott', 'movie', page);
+        break;
       case 'network':
-        metas = await cloudstream.getCatalog('ott', contentType, page);
+        metas = await cloudstream.getCatalog('series', 'series', page);
         break;
       default:
         metas = await cloudstream.getCatalog(contentType, contentType, page);

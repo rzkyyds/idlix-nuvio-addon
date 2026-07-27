@@ -4,6 +4,7 @@ const cloudstream = require('../lib/cloudstream-sources');
 const upstreams = require('../lib/upstream-addons');
 const { filterStreams, isNsfw } = require('../lib/nsfw-filter');
 const { cleanStreamList } = require('../lib/stream-cleaner');
+const { filterStreamsByTitle, getExpectedTitle } = require('../lib/title-match-filter');
 
 async function streamHandler({ type, id }) {
   try {
@@ -13,7 +14,9 @@ async function streamHandler({ type, id }) {
       return { streams: cleanStreamList(filterStreams(await cloudstream.getStreams(id))) };
     }
 
-    return { streams: cleanStreamList(filterStreams(await upstreams.getAddonStreams(type, id))) };
+    const expectedTitle = await getExpectedTitle(type, id);
+    const streams = filterStreamsByTitle(await upstreams.getAddonStreams(type, id), expectedTitle);
+    return { streams: cleanStreamList(filterStreams(streams)) };
   } catch (err) {
     console.error('[stream] error:', err.message);
     return { streams: [] };
