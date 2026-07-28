@@ -20,12 +20,16 @@ const GENRE_LABELS = [
 
 const manifest = {
   id: 'org.tonstreams.addon',
-  version: '1.2.0',
+  version: '1.2.1',
   name: 'TonStreams',
   description: 'Indo + OTT from CloudStream-derived providers, plus anime and foreign direct HTTP streams. NSFW filtered, no IDLIX API, no P2P/torrents.',
   logo: 'https://via.placeholder.com/256x256.png?text=TonStreams',
   background: 'https://via.placeholder.com/1920x1080.png?text=TonStreams',
-  resources: ['catalog', 'meta', 'stream'],
+  resources: [
+    'catalog',
+    { name: 'meta', types: ['movie', 'series'], idPrefixes: ['cs', 'mb', 'tt', 'tmdb', 'oa'] },
+    { name: 'stream', types: ['movie', 'series'], idPrefixes: ['cs', 'mb', 'tt', 'tmdb', 'oa'] },
+  ],
   types: ['movie', 'series'],
   idPrefixes: ['cs', 'mb', 'tt', 'tmdb', 'oa'],
   catalogs: [
