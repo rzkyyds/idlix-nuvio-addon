@@ -27,7 +27,7 @@ const manifest = {
   background: 'https://via.placeholder.com/1920x1080.png?text=TonStreams',
   resources: ['catalog', 'meta', 'stream'],
   types: ['movie', 'series'],
-  idPrefixes: ['cs', 'tt', 'tmdb', 'oa'],
+  idPrefixes: ['cs', 'mb', 'tt', 'tmdb', 'oa'],
   catalogs: [
     {
       type: 'movie',
