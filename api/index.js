@@ -30,6 +30,22 @@ function mountApi(app) {
           mode: "stream aggregator for tt/tmdb/anime IDs when public endpoint allows it",
         },
         {
+          id: "webstreamr",
+          name: "WebStreamr",
+          coverage: ["foreign", "OTT", "movies", "series"],
+          baseUrl: upstreams.WEBSTREAMR_BASE || null,
+          enabled: Boolean(upstreams.WEBSTREAMR_BASE),
+          mode: "optional HTTP stream fallback via WEBSTREAMR_ADDON_URL",
+        },
+        {
+          id: "nuviostreams",
+          name: "Nuvio Streams",
+          coverage: ["foreign", "OTT", "movies", "series"],
+          baseUrl: upstreams.NUVIO_STREAMS_BASE || null,
+          enabled: Boolean(upstreams.NUVIO_STREAMS_BASE),
+          mode: "optional HTTP stream fallback via NUVIO_STREAMS_ADDON_URL",
+        },
+        {
           id: "onlyanimes",
           name: "OnlyAnimes",
           coverage: ["anime", "Japan", "Korea", "China", "US", "UK", "France"],
