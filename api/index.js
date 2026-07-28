@@ -23,11 +23,19 @@ function mountApi(app) {
           mode: "stream aggregator for tt/tmdb/kitsu IDs",
         },
         {
+          id: "fenixflix",
+          name: "FenixFlix",
+          coverage: ["foreign", "Brazil/Portuguese", "movies", "series"],
+          baseUrl: upstreams.FENIXFLIX_BASE,
+          mode: "direct MP4 fallback for tt IDs; preferred over FrostStream due smoother TV playback probes",
+        },
+        {
           id: "froststream",
           name: "FrostStream",
           coverage: ["foreign", "Brazil/Portuguese", "movies", "series"],
           baseUrl: upstreams.FROSTSTREAM_BASE,
-          mode: "direct HTTP fallback for tt IDs; filtered by size/ranking before display",
+          enabled: process.env.ENABLE_FROSTSTREAM === "true",
+          mode: "disabled by default; direct MKV fallback caused lag/audio drop on TV playback",
         },
         {
           id: "flix-streams",
