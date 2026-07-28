@@ -23,6 +23,13 @@ function mountApi(app) {
           mode: "stream aggregator for tt/tmdb/kitsu IDs",
         },
         {
+          id: "froststream",
+          name: "FrostStream",
+          coverage: ["foreign", "Brazil/Portuguese", "movies", "series"],
+          baseUrl: upstreams.FROSTSTREAM_BASE,
+          mode: "direct HTTP fallback for tt IDs; filtered by size/ranking before display",
+        },
+        {
           id: "flix-streams",
           name: "Flix-Streams",
           coverage: ["foreign", "OTT", "anime", "live", "movies", "series"],
