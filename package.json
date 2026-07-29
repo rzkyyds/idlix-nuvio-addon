@@ -4,7 +4,8 @@
   "description": "Stremio/Nuvio addon aggregator using CloudStream-derived Indo/OTT sources plus anime/global direct HTTP upstreams",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "node --test"
   },
   "keywords": [
     "stremio",
