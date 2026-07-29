@@ -46,6 +46,19 @@ test("keeps FenixFlix Dublado when no original-audio variant exists", () => {
   assert.equal(streams[0].url, "https://cdn.example/dub.mp4");
 });
 
+test("filters HdHub Server rows that are ZIP archives instead of playable video", () => {
+  const streams = cleanStreamList([
+    {
+      name: "HdHub 720p",
+      description: "[Server] [💾 1.1GB] Example.Movie.720p.mkv\nServer",
+      url: "https://ddl2.example.workers.dev/token/Example.Movie.720p.mkv.zip",
+      behaviorHints: { upstreamKey: "hdhub", upstreamName: "HdHub" },
+    },
+  ]);
+
+  assert.deepEqual(streams, []);
+});
+
 test("language preference only affects FenixFlix streams", () => {
   const streams = cleanStreamList([
     {
